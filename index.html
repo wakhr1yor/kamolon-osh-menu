@@ -70,85 +70,93 @@
     </div>
 
      <script>
+      <script>
+    // 1. Ma'lumotlar
     const data = {
         branch: "Drujba filiali",
         xizmatFoizi: 15,
         buyurtmalar: [
             { nomi: "Choyxona Palov", miqdori: 2, narxi: 50000 },
             { nomi: "Achichuk salati", miqdori: 1, narxi: 15000 },
-            { nomi: "Limonli choy", miqdori: 1, narxi: 12000 }
+            { nomi: "Limonli choy", miqdori: 1, narxi: 12000 },
+            { nomi: "Issiq non", miqdori: 2, narxi: 4500 }
         ]
     };
 
+    // 2. Hisobni chiqarish funksiyasi
     function hisobniChiqarish() {
-        // 1. URL'dan stol raqamini olish
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            let stolRaqami = urlParams.get('table') || "5"; 
+
+            const tbody = document.getElementById('items-list');
+            let jamiTaomlarSummasi = 0;
+            tbody.innerHTML = "";
+
+            data.buyurtmalar.forEach(item => {
+                let taomSummasi = item.miqdori * item.narxi;
+                jamiTaomlarSummasi += taomSummasi;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.nomi}</td>
+                        <td class="r">${item.miqdori}</td>
+                        <td class="r">${taomSummasi.toLocaleString()}</td>
+                    </tr>`;
+            });
+
+            let xizmatHaqi = jamiTaomlarSummasi * (data.xizmatFoizi / 100);
+            let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
+
+            // Ma'lumotlarni ekrangan chiqarish
+            document.getElementById('st-display').innerText = "Stol: " + stolRaqami + "-stol";
+            document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
+            document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
+            document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
+            
+            console.log("Hisob-kitob tayyor!");
+        } catch (err) {
+            console.error("Hisoblashda xato:", err);
+        }
+    }
+
+    // 3. Telegramga xabar yuborish funksiyasi
+    async function callWaiter() {
+        const botToken = "SIZNING_BOT_TOKENINGIZ"; // BU YERGA TOKENNI QO'YING
+        const chatId = "SIZNING_CHAT_ID_RAQAMINGIZ"; // BU YERGA ID NI QO'YING
+        
         const urlParams = new URLSearchParams(window.location.search);
-        let stolRaqami = urlParams.get('table'); 
+        const tableNum = urlParams.get('table') || "Noma'lum";
+        const total = document.getElementById('final-total').innerText;
+        
+        const text = 🔔 CHAQIRUV\n📍 Stol: ${tableNum}\n💰 Hisob: ${total};
 
-        // 2. Agar URL'da stol bo'lmasa, standart 5-stol qilib qo'yamiz
-        if (!stolRaqami) {
-            stolRaqami = "5"; 
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: text })
+            });
+
+            if (response.ok) {
+                alert("✅ Ofitsiant chaqirildi!");
+            } else {
+                const errorData = await response.json();
+                alert("❌ Telegram xatosi: " + errorData.description);
+            }
+        } catch (error) {
+            alert("❌ Tarmoq xatosi! Internetni tekshiring.");
         }
-
-        const tbody = document.getElementById('items-list');
-        let jamiTaomlarSummasi = 0;
-        tbody.innerHTML = "";
-
-        data.buyurtmalar.forEach(item => {
-            let taomSummasi = item.miqdori * item.narxi;
-            jamiTaomlarSummasi += taomSummasi;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${item.nomi}</td>
-                    <td class="r">${item.miqdori}</td>
-                    <td class="r">${taomSummasi.toLocaleString()}</td>
-                </tr>`;
-        });
-
-        let xizmatHaqi = jamiTaomlarSummasi * (data.xizmatFoizi / 100);
-        let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
-
-        // Ma'lumotlarni ekranga chiqarish
-        document.getElementById('st-display').innerText = "Stol: " + stolRaqami + "-stol";
-        document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
-        document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
-        document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
     }
-         async function callWaiter() {
-    // BU YERGA O'ZINGIZNING MA'LUMOTLARINGIZNI QO'YING
-    const botToken = "8558802956:AAHVXYkwt6IuHP1YLFz60A8aniMSrUbmo5A"; 
-    const chatId = "7913258177"; 
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const tableNum = urlParams.get('table') || "Noma'lum";
-    const totalAmount = document.getElementById('final-total').innerText;
-    
-    const text = 🔔 **YANGI CHAQIRUV**\n\n📍 **Stol:** ${tableNum}\n💰 **Hisob:** ${totalAmount}\n⏰ **Vaqt:** ${new Date().toLocaleTimeString()};
 
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: text,
-                parse_mode: "Markdown"
-            })
-        });
-
-        if (response.ok) {
-            alert("✅ Ofitsiant chaqirildi! Tez orada yetib keladi.");
-        } else {
-            alert("❌ Xatolik! Telegram bot sozlamalarini tekshiring.");
-        }
-    } catch (error) {
-        alert("Tarmoq xatosi yuz berdi.");
-    }
-}
-
+    // 4. Sahifa yuklanganda ishga tushirish
+    window.onload = function() {
+        hisobniChiqarish();
+    };
+</script>
     window.onload = hisobniChiqarish;
 </script>
 
 </html>
+
 
 
