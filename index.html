@@ -3,41 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamolon Osh - Hisob</title>
+    <title>Kamolon Osh - To'lov Hisobi</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .receipt { background: white; width: 100%; max-width: 360px; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .logo { text-align: center; }
-        .logo img { width: 80px; height: 80px; border-radius: 50%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        td, th { padding: 10px; border-bottom: 1px solid #eee; }
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .receipt { background: white; width: 100%; max-width: 360px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 6px solid #1a237e; }
+        .logo { text-align: center; margin-bottom: 10px; }
+        .logo img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
+        h2 { text-align: center; margin: 5px 0; color: #1a237e; text-transform: uppercase; font-size: 22px; }
+        .info { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { text-align: left; border-bottom: 2px solid #f0f0f0; padding: 8px 5px; font-size: 12px; color: #999; }
+        td { padding: 12px 5px; border-bottom: 1px dashed #eee; font-size: 15px; color: #333; }
         .r { text-align: right; }
-        .btn { width: 100%; background: #1a237e; color: white; border: none; padding: 15px; border-radius: 10px; margin-top: 20px; cursor: pointer; font-size: 16px; }
+        .summary-box { background-color: #f9f9f9; padding: 15px; border-radius: 10px; }
+        .total-box { margin-top: 10px; font-weight: bold; font-size: 20px; border-top: 2px solid #1a237e; padding-top: 12px; display: flex; justify-content: space-between; }
+        .btn { width: 100%; background: #1a237e; color: white; border: none; padding: 16px; border-radius: 12px; margin-top: 25px; cursor: pointer; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <div class="receipt">
         <div class="logo"><img src="logo.png" alt="Logo"></div>
-        <h2 style="text-align:center">Kamolon Osh</h2>
-        <p style="text-align:center"><b id="st-display">Yuklanmoqda...</b></p>
+        <h2>Kamolon Osh</h2>
+        <div class="info"><p><b id="st-display">Yuklanmoqda...</b></p></div>
 
         <table>
-            <thead>
-                <tr><th>Taom</th><th class="r">Soni</th><th class="r">Summa</th></tr>
-            </thead>
+            <thead><tr><th>Taom</th><th class="r">Soni</th><th class="r">Summa</th></tr></thead>
             <tbody id="items-list"></tbody>
         </table>
 
-        <div style="margin-top:20px; background:#f9f9f9; padding:10px;">
-            <div style="display:flex; justify-content:space-between"><span>Jami:</span><span id="final-total">0 so'm</span></div>
+        <div class="summary-box">
+            <div class="total-box"><span>JAMI:</span><span id="final-total">0 so'm</span></div>
         </div>
 
         <button class="btn" onclick="callWaiter()">🔔 Ofitsiantni chaqirish</button>
     </div>
 
     <script>
-    const myData = {
+    const menuData = {
         buyurtmalar: [
             { nomi: "Choyxona Palov", miqdori: 2, narxi: 50000 },
             { nomi: "Achichuk salati", miqdori: 1, narxi: 15000 },
@@ -46,26 +49,22 @@
     };
 
     function hisobniChiqarish() {
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            let stol = urlParams.get('table') || "Aniqlanmagan";
-            document.getElementById('st-display').innerText = "Stol: " + stol;
+        const urlParams = new URLSearchParams(window.location.search);
+        let stol = urlParams.get('table') || "X"; 
+        document.getElementById('st-display').innerText = "Stol: " + stol;
 
-            const tbody = document.getElementById('items-list');
-            let jami = 0;
-            tbody.innerHTML = "";
+        const tbody = document.getElementById('items-list');
+        let jami = 0;
+        tbody.innerHTML = "";
 
-            myData.buyurtmalar.forEach(item => {
-                let summa = item.miqdori * item.narxi;
-                jami += summa;
-                tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${summa.toLocaleString()}</td></tr>;
-            });
+        menuData.buyurtmalar.forEach(item => {
+            let summa = item.miqdori * item.narxi;
+            jami += summa;
+            tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${summa.toLocaleString()}</td></tr>;
+        });
 
-            let yakun = jami + (jami * 0.15);
-            document.getElementById('final-total').innerText = yakun.toLocaleString() + " so'm";
-        } catch (e) {
-            alert("Hisoblashda xato: " + e.message);
-        }
+        let yakun = jami + (jami * 0.15); // 15% xizmat haqi bilan
+        document.getElementById('final-total').innerText = yakun.toLocaleString() + " so'm";
     }
 
     async function callWaiter() {
@@ -74,7 +73,6 @@
         const stol = document.getElementById('st-display').innerText;
         const pul = document.getElementById('final-total').innerText;
         
-        // MANA BU YERDA DIQQAT QILING: ` belgisi (Backtick) ishlatildi
         const xabar = 🔔 CHAQIRUV\n📍 ${stol}\n💰 Hisob: ${pul};
 
         try {
@@ -84,16 +82,10 @@
                 body: JSON.stringify({ chat_id: cid, text: xabar })
             });
             if(res.ok) alert("✅ Ofitsiantga xabar ketdi!");
-            else alert("❌ Bot xatosi!");
-        } catch (err) {
-            alert("❌ Tarmoq xatosi!");
-        }
+            } catch (err) { alert("❌ Xatolik yuz berdi"); }
     }
 
     window.onload = hisobniChiqarish;
     </script>
 </body>
 </html>
-
-
-
