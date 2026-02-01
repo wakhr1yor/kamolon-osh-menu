@@ -26,38 +26,7 @@
         .btn:active { transform: scale(0.97); background: #0d1245; }
     </style>
 </head>
-    async function callWaiter() {
-    // BU YERGA O'ZINGIZNING MA'LUMOTLARINGIZNI QO'YING
-    const botToken = "8558802956:AAHVXYkwt6IuHP1YLFz60A8aniMSrUbmo5A"; 
-    const chatId = "7913258177"; 
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const tableNum = urlParams.get('table') || "Noma'lum";
-    const totalAmount = document.getElementById('final-total').innerText;
-    
-    const text = 🔔 **YANGI CHAQIRUV**\n\n📍 **Stol:** ${tableNum}\n💰 **Hisob:** ${totalAmount}\n⏰ **Vaqt:** ${new Date().toLocaleTimeString()};
-
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: text,
-                parse_mode: "Markdown"
-            })
-        });
-
-        if (response.ok) {
-            alert("✅ Ofitsiant chaqirildi! Tez orada yetib keladi.");
-        } else {
-            alert("❌ Xatolik! Telegram bot sozlamalarini tekshiring.");
-        }
-    } catch (error) {
-        alert("Tarmoq xatosi yuz berdi.");
-    }
-}
-<body>
+  <body>
 
     <div class="receipt">
         <div class="logo">
@@ -145,9 +114,41 @@
         document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
         document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
     }
+         async function callWaiter() {
+    // BU YERGA O'ZINGIZNING MA'LUMOTLARINGIZNI QO'YING
+    const botToken = "8558802956:AAHVXYkwt6IuHP1YLFz60A8aniMSrUbmo5A"; 
+    const chatId = "7913258177"; 
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableNum = urlParams.get('table') || "Noma'lum";
+    const totalAmount = document.getElementById('final-total').innerText;
+    
+    const text = 🔔 **YANGI CHAQIRUV**\n\n📍 **Stol:** ${tableNum}\n💰 **Hisob:** ${totalAmount}\n⏰ **Vaqt:** ${new Date().toLocaleTimeString()};
+
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: text,
+                parse_mode: "Markdown"
+            })
+        });
+
+        if (response.ok) {
+            alert("✅ Ofitsiant chaqirildi! Tez orada yetib keladi.");
+        } else {
+            alert("❌ Xatolik! Telegram bot sozlamalarini tekshiring.");
+        }
+    } catch (error) {
+        alert("Tarmoq xatosi yuz berdi.");
+    }
+}
 
     window.onload = hisobniChiqarish;
 </script>
 
 </html>
+
 
