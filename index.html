@@ -30,7 +30,7 @@
 
     <div class="receipt">
         <div class="logo">
-            <img src="logo.png" Kamolon Osh Logo>
+            <img src="logo.png" alt="Kamolon Osh Logo">
         </div>
 
         <h2>Kamolon Osh</h2>
@@ -119,14 +119,15 @@
     }
 
     // 3. Telegramga xabar yuborish funksiyasi
-    async function callWaiter() {
-        const botToken = "8558802956:AAHVXYkwt6IuHP1YLFz60A8aniMSrUbmo5A"; // BU YERGA TOKENNI QO'YING
-        const chatId = "7913258177"; // BU YERGA ID NI QO'YING
+   async function callWaiter() {
+        const botToken = "8558802956:AAHVXYkwt6IuHP1YLFz60A8aniMSrUbmo5A"; 
+        const chatId = "7913258177"; 
         
         const urlParams = new URLSearchParams(window.location.search);
         const tableNum = urlParams.get('table') || "Noma'lum";
         const total = document.getElementById('final-total').innerText;
         
+        // MANA SHU YERDA XATO BOR EDI (Tirnoqlar qo'shildi):
         const text = 🔔 CHAQIRUV\n📍 Stol: ${tableNum}\n💰 Hisob: ${total};
 
         try {
@@ -146,14 +147,14 @@
             alert("❌ Tarmoq xatosi! Internetni tekshiring.");
         }
     }
-
     // 4. Sahifa yuklanganda ishga tushirish
     window.onload = function() {
         hisobniChiqarish();
     };
 </script>
-
+  </body>
 </html>
+
 
 
 
