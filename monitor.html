@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>LED MONITOR - Kamolon Osh</title>
+    <style>
+        body { 
+            background: black; 
+            margin: 0; 
+            overflow: hidden; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            cursor: none;
+        }
+        #led-display { 
+            color: #ff0000; 
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 70vh; /* Maksimal yiriklik */
+            font-weight: bold;
+            text-shadow: 0 0 50px red, 0 0 100px red;
+            display: none;
+            animation: blink 0.6s infinite alternate;
+        }
+        @keyframes blink {
+            from { opacity: 1; filter: brightness(1); }
+            to { opacity: 0.6; filter: brightness(1.5); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="led-display">0</div>
+    <audio id="alert-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+
+    <script>
+        // FIREBASE URL MANZILINGIZ (index.html dagi bilan bir xil bo'lishi shart)
+        const dbURL = "https://SIZNING-LOYIHA-NOMI-default-rtdb.firebaseio.com/call.json";
+        let lastTimestamp = 0;
+
+        function checkNewCalls() {
+            fetch(dbURL)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.time > lastTimestamp) {
+                    lastTimestamp = data.time;
+                    triggerDisplay(data.table);
+                }
+            })
+            .catch(err => console.error("Baza bilan aloqa yo'q..."));
+        }
+
+        function triggerDisplay(num) {
+            const display = document.getElementById('led-display');
+            const sound = document.getElementById('alert-sound');
+            
+            display.innerText = num;
+            display.style.display = 'block';
+            sound.play().catch(e => console.log("Ovoz uchun ekranni bir marta bosing"));
+
+            // 5 soniya davomida ko'rsatib turadi
+            setTimeout(() => {
+                display.style.display = 'none';
+            }, 5000);
+        }
+
+        // Har 2 soniyada yangi chaqiruv bor-yo'qligini tekshiradi
+        setInterval(checkNewCalls, 2000);
+    </script>
+</body>
+</html>
