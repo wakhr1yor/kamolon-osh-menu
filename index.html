@@ -5,34 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kamolon Osh - To'lov Hisobi</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
         .receipt { background: white; width: 100%; max-width: 360px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 6px solid #1a237e; }
         .logo { text-align: center; margin-bottom: 10px; }
         .logo img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
         h2 { text-align: center; margin: 5px 0; color: #1a237e; text-transform: uppercase; font-size: 22px; }
         .info { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { text-align: left; border-bottom: 2px solid #f0f0f0; padding: 8px 5px; font-size: 12px; color: #999; }
+        th { text-align: left; border-bottom: 2px solid #f0f0f0; padding: 8px 5px; font-size: 12px; color: #999; text-transform: uppercase; }
         td { padding: 12px 5px; border-bottom: 1px dashed #eee; font-size: 15px; color: #333; }
         .r { text-align: right; }
         .summary-box { background-color: #f9f9f9; padding: 15px; border-radius: 10px; }
-        .total-box { margin-top: 10px; font-weight: bold; font-size: 20px; border-top: 2px solid #1a237e; padding-top: 12px; display: flex; justify-content: space-between; }
-        .btn { width: 100%; background: #1a237e; color: white; border: none; padding: 16px; border-radius: 12px; margin-top: 25px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .line { display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 8px; }
+        .total-box { margin-top: 10px; font-weight: bold; font-size: 20px; border-top: 2px solid #1a237e; padding-top: 12px; display: flex; justify-content: space-between; color: #000; }
+        .btn { width: 100%; background: #1a237e; color: white; border: none; padding: 16px; border-radius: 12px; margin-top: 25px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn:active { transform: scale(0.97); background: #0d1245; }
     </style>
 </head>
 <body>
 
     <div class="receipt">
-        <div class="logo"><img src="logo.png" alt="Logo"></div>
+        <div class="logo"><img src="logo.png" alt="Kamolon Osh Logo"></div>
         <h2>Kamolon Osh</h2>
-        <div class="info"><p><b id="st-display">Yuklanmoqda...</b></p></div>
+        <div class="info"><p><b id="st-display">Stol aniqlanmoqda...</b></p></div>
 
         <table>
-            <thead><tr><th>Taom</th><th class="r">Soni</th><th class="r">Summa</th></tr></thead>
+            <thead>
+                <tr><th>Taom nomi</th><th class="r">Soni</th><th class="r">Summa</th></tr>
+            </thead>
             <tbody id="items-list"></tbody>
         </table>
 
         <div class="summary-box">
+            <div class="line"><span>Taomlar:</span><span id="subtotal">0 so'm</span></div>
+            <div class="line"><span>Xizmat (15%):</span><span id="service-fee">0 so'm</span></div>
             <div class="total-box"><span>JAMI:</span><span id="final-total">0 so'm</span></div>
         </div>
 
@@ -40,49 +46,54 @@
     </div>
 
     <script>
-    const menuData = {
+    // 1. SIZNING FIREBASE URL MANZILINGIZ (O'zingiznikini qo'ying)
+    const dbURL = "https://console.firebase.google.com/project/kamolon-monitor/database/kamolon-monitor-default-rtdb/data/~2F";
+
+    const data = {
         buyurtmalar: [
             { nomi: "Choyxona Palov", miqdori: 2, narxi: 50000 },
             { nomi: "Achichuk salati", miqdori: 1, narxi: 15000 },
-            { nomi: "Limonli choy", miqdori: 1, narxi: 12000 }
+            { nomi: "Limonli choy", miqdori: 1, narxi: 12000 },
+            { nomi: "Issiq non", miqdori: 2, narxi: 4500 }
         ]
     };
 
     function hisobniChiqarish() {
         const urlParams = new URLSearchParams(window.location.search);
-        let stol = urlParams.get('table') || "X"; 
-        document.getElementById('st-display').innerText = "Stol: " + stol;
+        let stolRaqami = urlParams.get('table') || "0"; 
 
         const tbody = document.getElementById('items-list');
-        let jami = 0;
+        let jamiTaomlarSummasi = 0;
         tbody.innerHTML = "";
 
-        menuData.buyurtmalar.forEach(item => {
-            let summa = item.miqdori * item.narxi;
-            jami += summa;
-            tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${summa.toLocaleString()}</td></tr>;
+        data.buyurtmalar.forEach(item => {
+            let taomSummasi = item.miqdori * item.narxi;
+            jamiTaomlarSummasi += taomSummasi;
+            tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${taomSummasi.toLocaleString()}</td></tr>;
         });
 
-        let yakun = jami + (jami * 0.15); // 15% xizmat haqi bilan
-        document.getElementById('final-total').innerText = yakun.toLocaleString() + " so'm";
+        let xizmatHaqi = jamiTaomlarSummasi * 0.15;
+        let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
+
+        document.getElementById('st-display').innerText = "Stol: " + stolRaqami + "-stol";
+document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
+        document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
+        document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
     }
 
     async function callWaiter() {
-        const token = "8558802956:AAHVXYkwt6IuHP1YLFz60A8aniMSrUbmo5A";
-        const cid = "7913258177";
-        const stol = document.getElementById('st-display').innerText;
-        const pul = document.getElementById('final-total').innerText;
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableNum = urlParams.get('table') || "0";
         
-        const xabar = 🔔 CHAQIRUV\n📍 ${stol}\n💰 Hisob: ${pul};
-
         try {
-            const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: cid, text: xabar })
+            await fetch(dbURL, {
+                method: 'PUT',
+                body: JSON.stringify({ table: tableNum, time: Date.now() })
             });
-            if(res.ok) alert("✅ Ofitsiantga xabar ketdi!");
-            } catch (err) { alert("❌ Xatolik yuz berdi"); }
+            alert("✅ Ofitsiant chaqirildi!");
+        } catch (e) {
+            alert("❌ Xatolik yuz berdi!");
+        }
     }
 
     window.onload = hisobniChiqarish;
