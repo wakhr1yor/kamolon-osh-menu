@@ -58,11 +58,14 @@
 
     function hisobniChiqarish() {
         const urlParams = new URLSearchParams(window.location.search);
-        let stolRaqami = urlParams.get('table') || "0"; 
+const tableId = urlParams.get('table');
 
-        const tbody = document.getElementById('items-list');
-        let jamiTaomlarSummasi = 0;
-        tbody.innerHTML = "";
+if (tableId) {
+    document.getElementById('table-number').innerText = tableId + "-stol";
+} else {
+    document.getElementById('table-number').innerText = "Stol aniqlanmadi";
+}
+       
 
         data.buyurtmalar.forEach(item => {
             let taomSummasi = item.miqdori * item.narxi;
@@ -84,7 +87,7 @@ document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleStrin
         const tableNum = urlParams.get('table') || "0";
         
         try {
-            await fetch(dbURL, {
+            await fetch(dbURL, {"https://kamolon-led-monitor-default-rtdb.europe-west1.firebasedatabase.app/call.json"
                 method: 'PUT',
                 body: JSON.stringify({ table: tableNum, time: Date.now() })
             });
@@ -98,5 +101,6 @@ document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleStrin
     </script>
 </body>
 </html>
+
 
 
