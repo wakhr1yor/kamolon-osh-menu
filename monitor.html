@@ -17,59 +17,131 @@
         #led-display { 
             color: #ff0000; 
             font-family: 'Courier New', Courier, monospace;
-            font-size: 70vh; /* Maksimal yiriklik */
+            font-size: 70vh; /* yiriklik */
             font-weight: bold;
             text-shadow: 0 0 50px red, 0 0 100px red;
             display: none;
             animation: blink 0.6s infinite alternate;
+            line-height: 1;
         }
         @keyframes blink {
             from { opacity: 1; filter: brightness(1); }
             to { opacity: 0.6; filter: brightness(1.5); }
+        }
+        /* Ovoz uchun hint (bir martalik) */
+        #sound-hint {
+            position: absolute;
+            bottom: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: sans-serif;
+            font-size: 1.6vh;
+            display: none;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
     <div id="led-display">0</div>
-    <audio id="alert-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+    <div id="sound-hint">Ekranni bir marta bosing — ovoz yoqish uchun</div>
+    <audio id="alert-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3" preload="auto"></audio>
 
     <script>
-        // FIREBASE URL MANZILINGIZ (index.html dagi bilan bir xil bo'lishi shart)
+        // FIREBASE URL (index.html dagi bilan bir xil bo'lishi shart)
         const dbURL = "https://kamolon-led-monitor-default-rtdb.europe-west1.firebasedatabase.app/call.json";
         let lastTimestamp = 0;
+        let displayTimeout = null;
+        const display = document.getElementById('led-display');
+        const sound = document.getElementById('alert-sound');
+        const hint = document.getElementById('sound-hint');
+
+        // Sahifa yuklanganda darhol tekshirish
+        checkNewCalls();
+        // Har 2 soniyada yangi chaqiruv bor-yo'qligini tekshiradi
+        setInterval(checkNewCalls, 2000);
+
+        // Bir martalik foydalanuvchi interaktsiyasi — audio "unlock"
+        function unlockAudioOnInteraction() {
+            // ko'rsatish hint agar autoplay bloklansa
+            hint.style.display = 'block';
+            const tryUnlock = () => {
+                // urinish: ovozni boshlab darhol to'xtatish (brauzerlar uchun unlock usuli)
+                sound.play()
+                    .then(() => {
+                        try { sound.pause(); sound.currentTime = 0; } catch(e) {}
+                        hint.style.display = 'none';
+                    })
+                    .catch(() => {
+                        // Agar to'xtatilsa, hint ko'rsatiladi
+                        hint.style.display = 'block';
+                    })
+                    .finally(() => {
+                        // bir martalik listener olib tashlash
+                        document.removeEventListener('click', tryUnlock);
+                        document.removeEventListener('touchstart', tryUnlock);
+                    });
+            };
+            document.addEventListener('click', tryUnlock, { once: true });
+            document.addEventListener('touchstart', tryUnlock, { once: true });
+        }
+
+        // Darhol audio unlock uchun hintni ishga tushirish
+        unlockAudioOnInteraction();
 
         function checkNewCalls() {
-            fetch(dbURL)
-            .then(res => res.json())
+            // Cache-busting uchun timestamp qo'shamiz
+            const url = dbURL + '?_=' + Date.now();
+            fetch(url, { cache: 'no-store', headers: { 'Accept': 'application/json' } })
+            .then(res => {
+                if (!res.ok) throw new Error('Network response not ok: ' + res.status);
+                return res.json();
+            })
             .then(data => {
-                if (data && data.time > lastTimestamp) {
-                    lastTimestamp = data.time;
-                    triggerDisplay(data.table);
+                if (!data) return;
+                const time = Number(data.time || 0);
+                if (isNaN(time)) return;
+                if (time > lastTimestamp) {
+                    lastTimestamp = time;
+                    // data.table mavjud bo'lmasa fallback ishlatamiz
+                    const tableNum = (data.table !== undefined && data.table !== null) ? data.table : (data.number || data.tableNumber || '0');
+                    triggerDisplay(tableNum);
                 }
             })
-            .catch(err => console.error("Baza bilan aloqa yo'q..."));
+            .catch(err => console.error("Baza bilan aloqa yo'q:", err));
         }
 
         function triggerDisplay(num) {
-            const display = document.getElementById('led-display');
-            const sound = document.getElementById('alert-sound');
-            
-            display.innerText = num;
+            // Tozalash: mavjud timeoutni bekor qilamiz, shunda yangi chaqiruv 5s davom etadi
+            if (displayTimeout) {
+                clearTimeout(displayTimeout);
+                displayTimeout = null;
+            }
+
+            display.innerText = String(num ?? '0');
             display.style.display = 'block';
-            sound.play().catch(e => console.log("Ovoz uchun ekranni bir marta bosing"));
+
+            // Ovoz ijrosi — agar brauzer bloklasa, catch ichida hint paydo bo'ladi
+            sound.play().catch(e => {
+                // konsolga chiqaramiz va hint ko'rsatishni davom ettiramiz
+                console.log("Ovoz ijrosi bloklandi yoki ruxsat talab qilinadi:", e);
+                hint.style.display = 'block';
+            });
 
             // 5 soniya davomida ko'rsatib turadi
-            setTimeout(() => {
+            displayTimeout = setTimeout(() => {
                 display.style.display = 'none';
+                displayTimeout = null;
             }, 5000);
         }
-
-        // Har 2 soniyada yangi chaqiruv bor-yo'qligini tekshiradi
-        setInterval(checkNewCalls, 2000);
     </script>
 </body>
 </html>
+```
 
 
 
