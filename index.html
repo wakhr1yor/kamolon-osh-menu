@@ -57,13 +57,13 @@
     };
 
     function hisobniChiqarish() {
-        const urlParams = new URLSearchParams(window.location.search);
-const tableId = urlParams.get('table');
+     const urlParams = new URLSearchParams(window.location.search);
+let stolRaqami = urlParams.get('table') || "0";
 
-if (tableId) {
-    document.getElementById('table-number').innerText = tableId + "-stol";
-} else {
-    document.getElementById('table-number').innerText = "Stol aniqlanmadi";
+// Stol raqamini ekranga chiqarish
+let stDisplay = document.getElementById('st-display');
+if(stDisplay) {
+    stDisplay.innerText = "Stol: " + stolRaqami;
 }
        
 
@@ -101,6 +101,7 @@ document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleStrin
     </script>
 </body>
 </html>
+
 
 
 
