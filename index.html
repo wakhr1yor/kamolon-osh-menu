@@ -47,6 +47,7 @@
 
     <script>
     const dbURL = "https://kamolon-led-monitor-default-rtdb.europe-west1.firebasedatabase.app/call.json";
+    
     const data = {
         buyurtmalar: [
             { nomi: "Choyxona Palov", miqdori: 2, narxi: 50000 },
@@ -56,57 +57,22 @@
         ]
     };
 
-  function hisobniChiqarish() {
-    const urlParams = new URLSearchParams(window.location.search);
-    // URL-dan 'table' qiymatini olamiz, agar bo'lmasa "0" qo'yamiz
-    let stolRaqami = urlParams.get('table') || "0";
-
-    // Stol raqamini ekranga chiqarish (ID: st-display bo'lishi kerak)
-    let stDisplay = document.getElementById('st-display');
-    if (stDisplay) {
-        stDisplay.innerText = "Stol: " + stolRaqami;
-    }
-
-    const tbody = document.getElementById('items-list');
-    let jamiTaomlarSummasi = 0;
-    tbody.innerHTML = "";
-
-    data.buyurtmalar.forEach(item => {
-        let taomSummasi = item.miqdori * item.narxi;
-        jamiTaomlarSummasi += taomSummasi;
-        tbody.innerHTML += <tr><td>${item.nomi}</td><td>${item.miqdori}</td><td class="r">${taomSummasi.toLocaleString()} so'm</td></tr>;
-    });
-
-    let xizmatHaqi = jamiTaomlarSummasi * 0.15;
-    let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
-
-    // Pastki hisob-kitob qismlarini yangilash
-    document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
-    document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
-    document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
-}
-
-    async function callWaiter() {
+    function hisobniChiqarish() {
         const urlParams = new URLSearchParams(window.location.search);
-        const tableNum = urlParams.get('table') || "0";
-        
-        try {
-            await fetch(dbURL, {"https://kamolon-led-monitor-default-rtdb.europe-west1.firebasedatabase.app/call.json"
-                method: 'PUT',
-                body: JSON.stringify({ table: tableNum, time: Date.now() })
-            });
-            alert("✅ Ofitsiant chaqirildi!");
-        } catch (e) {
-            alert("❌ Xatolik yuz berdi!");
+        let stolRaqami = urlParams.get('table') || "Aniqlanmadi";
+
+        // Stol raqamini ekranga chiqarish
+        let stDisplay = document.getElementById('st-display');
+        if (stDisplay) {
+            stDisplay.innerText = stolRaqami !== "Aniqlanmadi" ? "Stol: " + stolRaqami : stolRaqami;
         }
-    }
 
-    window.onload = hisobniChiqarish;
-    </script>
-</body>
-</html>
+        const tbody = document.getElementById('items-list');
+        let jamiTaomlarSummasi = 0;
+        tbody.innerHTML = "";
 
-
-
-
-
+        data.buyurtmalar.forEach(item => {
+            let taomSummasi = item.miqdori * item.narxi;
+            jamiTaomlarSummasi += taomSummasi;
+            // Backtick (`) ishlatilishi shart!
+            tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.
