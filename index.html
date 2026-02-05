@@ -55,24 +55,69 @@
             { nomi: "Limonli choy", miqdori: 1, narxi: 12000 },
             { nomi: "Issiq non", miqdori: 2, narxi: 4500 }
         ]
-    };
+            
+   function hisobniChiqarish() {
+    const urlParams = new URLSearchParams(window.location.search);
+    // URL-dan 'table' qiymatini olamiz
+    let stolRaqami = urlParams.get('table') || "Aniqlanmadi";
 
-    function hisobniChiqarish() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let stolRaqami = urlParams.get('table') || "Aniqlanmadi";
+    // 1. Stol raqamini ekranga chiqarish
+    let stDisplay = document.getElementById('st-display');
+    if (stDisplay) {
+        stDisplay.innerText = (stolRaqami !== "Aniqlanmadi") ? "Stol: " + stolRaqami : stolRaqami;
+    }
 
-        // Stol raqamini ekranga chiqarish
-        let stDisplay = document.getElementById('st-display');
-        if (stDisplay) {
-            stDisplay.innerText = stolRaqami !== "Aniqlanmadi" ? "Stol: " + stolRaqami : stolRaqami;
+    // 2. Taomlar ro'yxatini chiqarish
+    const tbody = document.getElementById('items-list');
+    if (!tbody) return; // Agar jadval topilmasa, kod to'xtaydi
+
+    let jamiTaomlarSummasi = 0;
+    tbody.innerHTML = "";
+
+    data.buyurtmalar.forEach(item => {
+        let taomSummasi = item.miqdori * item.narxi;
+        jamiTaomlarSummasi += taomSummasi;
+        // Backtick (`) belgisiga diqqat qiling!
+        tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${taomSummasi.toLocaleString()} so'm</td></tr>;
+    });
+
+    // 3. Hisob-kitoblar
+    let xizmatHaqi = jamiTaomlarSummasi * 0.15;
+    let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
+
+    document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
+    document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
+    document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
+}
+
+async function callWaiter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableNum = urlParams.get('table') || "0";
+    
+    if (tableNum === "0") {
+        alert("⚠️ Stol raqami aniqlanmadi! Iltimos, QR kodni qayta skanerlang.");
+        return;
+    }
+
+    try {
+        const response = await fetch(dbURL, {
+            method: 'PUT',
+            body: JSON.stringify({ 
+                table: tableNum, 
+                time: new Date().toLocaleTimeString(),
+                timestamp: Date.now() 
+            })
+        });
+
+        if (response.ok) {
+            alert("✅ Ofitsiant chaqirildi! (Stol: " + tableNum + ")");
+        } else {
+            throw new Error();
         }
+    } catch (e) {
+        alert("❌ Xatolik! Internetni yoki Firebase Rules-ni tekshiring.");
+    }
+}
 
-        const tbody = document.getElementById('items-list');
-        let jamiTaomlarSummasi = 0;
-        tbody.innerHTML = "";
-
-        data.buyurtmalar.forEach(item => {
-            let taomSummasi = item.miqdori * item.narxi;
-            jamiTaomlarSummasi += taomSummasi;
-            // Backtick (`) ishlatilishi shart!
-            tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.
+// Sahifa yuklanganda funksiyani ishga tushirish
+window.onload = hisobniChiqarish;
