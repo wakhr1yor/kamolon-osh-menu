@@ -56,31 +56,35 @@
         ]
     };
 
-    function hisobniChiqarish() {
-     const urlParams = new URLSearchParams(window.location.search);
-let stolRaqami = urlParams.get('table') || "0";
+  function hisobniChiqarish() {
+    const urlParams = new URLSearchParams(window.location.search);
+    // URL-dan 'table' qiymatini olamiz, agar bo'lmasa "0" qo'yamiz
+    let stolRaqami = urlParams.get('table') || "0";
 
-// Stol raqamini ekranga chiqarish
-let stDisplay = document.getElementById('st-display');
-if(stDisplay) {
-    stDisplay.innerText = "Stol: " + stolRaqami;
-}
-       
-
-        data.buyurtmalar.forEach(item => {
-            let taomSummasi = item.miqdori * item.narxi;
-            jamiTaomlarSummasi += taomSummasi;
-            tbody.innerHTML += <tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${taomSummasi.toLocaleString()}</td></tr>;
-        });
-
-        let xizmatHaqi = jamiTaomlarSummasi * 0.15;
-        let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
-
-        document.getElementById('st-display').innerText = "Stol: " + stolRaqami + "-stol";
-document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
-        document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
-        document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
+    // Stol raqamini ekranga chiqarish (ID: st-display bo'lishi kerak)
+    let stDisplay = document.getElementById('st-display');
+    if (stDisplay) {
+        stDisplay.innerText = "Stol: " + stolRaqami;
     }
+
+    const tbody = document.getElementById('items-list');
+    let jamiTaomlarSummasi = 0;
+    tbody.innerHTML = "";
+
+    data.buyurtmalar.forEach(item => {
+        let taomSummasi = item.miqdori * item.narxi;
+        jamiTaomlarSummasi += taomSummasi;
+        tbody.innerHTML += <tr><td>${item.nomi}</td><td>${item.miqdori}</td><td class="r">${taomSummasi.toLocaleString()} so'm</td></tr>;
+    });
+
+    let xizmatHaqi = jamiTaomlarSummasi * 0.15;
+    let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
+
+    // Pastki hisob-kitob qismlarini yangilash
+    document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
+    document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
+    document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
+}
 
     async function callWaiter() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -101,6 +105,7 @@ document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleStrin
     </script>
 </body>
 </html>
+
 
 
 
