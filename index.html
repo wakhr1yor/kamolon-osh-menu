@@ -96,7 +96,39 @@
     }
 }
     window.onload = hisobniChiqarish;
+    async function callWaiter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let stolRaqami = urlParams.get('table') || "Noma'lum";
+
+    // Tugmani vaqtincha faolsizlantirish (ketma-ket bosilmasligi uchun)
+    const btn = document.querySelector('.btn-call');
+    if (btn) btn.disabled = true;
+
+    try {
+        // Firebase-ga ma'lumot yuborish
+        // DIQQAT: dbURL o'rniga o'zingizning Firebase havolangizni qo'ying
+        const response = await fetch("https://console.firebase.google.com/project/kamolon-led-monitor/database/kamolon-led-monitor-default-rtdb/data/~2F", {
+            method: "PUT", // Ma'lumotni yangilash
+            body: JSON.stringify({
+                table: stolRaqami,
+                time: new Date().toLocaleTimeString()
+            })
+        });
+
+        if (response.ok) {
+            alert(stolRaqami + "-stol, ofitsiant chaqirildi!");
+        } else {
+            alert("Xatolik yuz berdi, qaytadan urinib ko'ring.");
+        }
+    } catch (error) {
+        console.error("Firebase xatosi:", error);
+        alert("Internet aloqasini tekshiring.");
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
   </script>
 </body>
 </html>
+
 
