@@ -45,82 +45,58 @@
   </div>
 
   <script>
-    const dbURL = "https://kamolon-led-monitor-default-rtdb.europe-west1.firebasedatabase.app/call.json";
+    async function hisobniChiqarish() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let stolRaqami = urlParams.get('table') || "0";
 
-    const data = {
-      buyurtmalar: [
-        { nomi: "Choyxona Palov", miqdori: 2, narxi: 50000 },
-        { nomi: "Achichuk salati", miqdori: 1, narxi: 15000 },
-        { nomi: "Limonli choy", miqdori: 1, narxi: 12000 },
-        { nomi: "Issiq non", miqdori: 2, narxi: 4500 }
-      ]
-    }; // <-- obyekt yopildi
-
-    function hisobniChiqarish() {
-      const urlParams = new URLSearchParams(window.location.search);
-      let stolRaqami = urlParams.get('table') || "Aniqlanmadi";
-
-      const stDisplay = document.getElementById('st-display');
-      if (stDisplay) {
-        stDisplay.innerText = (stolRaqami !== "Aniqlanmadi") ? "Stol: " + stolRaqami : stolRaqami;
-      }
-
-      const tbody = document.getElementById('items-list');
-      if (!tbody) return;
-
-      let jamiTaomlarSummasi = 0;
-      let rows = "";
-
-      data.buyurtmalar.forEach(item => {
-        const taomSummasi = item.miqdori * item.narxi;
-        jamiTaomlarSummasi += taomSummasi;
-        rows += `<tr><td>${item.nomi}</td><td class="r">${item.miqdori}</td><td class="r">${taomSummasi.toLocaleString()} soʻm</td></tr>`;
-      });
-
-      tbody.innerHTML = rows;
-
-      const xizmatHaqi = Math.round(jamiTaomlarSummasi * 0.15);
-      const yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
-
-      document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " soʻm";
-      document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " soʻm";
-      document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " soʻm";
+    // Stol raqamini ekranga chiqarish
+    let stDisplay = document.getElementById('st-display');
+    if (stDisplay) {
+        stDisplay.innerText = "Stol: " + stolRaqami;
     }
 
-    async function callWaiter() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tableNum = urlParams.get('table') || "0";
+    const tbody = document.getElementById('items-list');
+    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Hisob yuklanmoqda...</td></tr>";
 
-      if (tableNum === "0") {
-        alert("⚠️ Stol raqami aniqlanmadi! Iltimos, QR kodni qayta skanerlang.");
-        return;
-      }
+    try {
+        // RENDER SERVERINGIZGA SO'ROV YUBORAMIZ
+        const response = await fetch(`https://kamolon-osh-api.onrender.com/get-bill/${stolRaqami}`);
+        const data = await response.json();
 
-      try {
-        const response = await fetch(dbURL, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            table: tableNum,
-            time: new Date().toLocaleTimeString(),
-            timestamp: Date.now()
-          })
-        });
+        let jamiTaomlarSummasi = 0;
+        tbody.innerHTML = ""; // Yuklanmoqda yozuvini o'chiramiz
 
-        if (response.ok) {
-          alert("✅ Ofitsiant chaqirildi! (Stol: " + tableNum + ")");
+        // iiko dan kelgan taomlarni jadvalga chiqaramiz
+        // Diqqat: iiko API formatiga qarab 'items' yoki 'orderItems' deb o'zgartirish kerak bo'lishi mumkin
+        if (data && data.items) {
+            data.items.forEach(item => {
+                let taomSummasi = item.amount * item.price;
+                jamiTaomlarSummasi += taomSummasi;
+                tbody.innerHTML += `<tr>
+                    <td>${item.name}</td>
+                    <td class="r">${item.amount}</td>
+                    <td class="r">${taomSummasi.toLocaleString()} so'm</td>
+                </tr>`;
+            });
         } else {
-          const text = await response.text();
-          console.error('Firebase javobi:', response.status, text);
-          throw new Error('Server javobi: ' + response.status);
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Hozircha faol buyurtma yo'q</td></tr>";
         }
-      } catch (e) {
-        console.error(e);
-        alert("❌ Xatolik! Internetni yoki Firebase Rules-ni tekshiring.");
-      }
-    }
 
+        let xizmatHaqi = jamiTaomlarSummasi * 0.15;
+        let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
+
+        // Pastki hisob-kitob qismlarini yangilash
+        document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
+        document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
+        document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
+
+    } catch (error) {
+        console.error("Xatolik:", error);
+        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:red'>Hisobni olib bo'lmadi</td></tr>";
+    }
+}
     window.onload = hisobniChiqarish;
   </script>
 </body>
 </html>
+
