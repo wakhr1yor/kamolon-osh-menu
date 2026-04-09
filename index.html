@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="utf-8" />
@@ -18,8 +18,6 @@
     .summary-box { background-color: #f9f9f9; padding: 15px; border-radius: 10px; }
     .line { display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 8px; }
     .total-box { margin-top: 10px; font-weight: bold; font-size: 20px; border-top: 2px solid #1a237e; padding-top: 12px; display: flex; justify-content: space-between; color: #000; }
-    .btn { width: 100%; background: #1a237e; color: white; border: none; padding: 16px; border-radius: 12px; margin-top: 25px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-    .btn:active { transform: scale(0.97); background: #0d1245; }
   </style>
 </head>
 <body>
@@ -40,96 +38,53 @@
       <div class="line"><span>Xizmat (15%):</span><span id="service-fee">0 soʻm</span></div>
       <div class="total-box"><span>JAMI:</span><span id="final-total">0 soʻm</span></div>
     </div>
-
-    <button class="btn" onclick="callWaiter()">🔔 Ofitsiantni chaqirish</button>
   </div>
 
   <script>
     async function hisobniChiqarish() {
-    const urlParams = new URLSearchParams(window.location.search);
-    let stolRaqami = urlParams.get('table') || "0";
+      const urlParams = new URLSearchParams(window.location.search);
+      let stolRaqami = urlParams.get('table') || "Noma'lum";
+      
+      document.getElementById('st-display').innerText = "Stol " + stolRaqami;
+      
+      const tbody = document.getElementById('items-list');
+      tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Hisob yuklanmoqda...</td></tr>";
 
-    // Stol raqamini ekranga chiqarish
-    let stDisplay = document.getElementById('st-display');
-    if (stDisplay) {
-        stDisplay.innerText = "Stol: " + stolRaqami;
-    }
-
-    const tbody = document.getElementById('items-list');
-    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Hisob yuklanmoqda...</td></tr>";
-
-    try {
-        // RENDER SERVERINGIZGA SO'ROV YUBORAMIZ
+      try {
         const response = await fetch(`https://kamolon-osh-api.onrender.com/get-bill/${stolRaqami}`);
         const data = await response.json();
 
         let jamiTaomlarSummasi = 0;
-        tbody.innerHTML = ""; // Yuklanmoqda yozuvini o'chiramiz
+        tbody.innerHTML = "";
 
-        // iiko dan kelgan taomlarni jadvalga chiqaramiz
-        // Diqqat: iiko API formatiga qarab 'items' yoki 'orderItems' deb o'zgartirish kerak bo'lishi mumkin
         if (data && data.items) {
-            data.items.forEach(item => {
-                let taomSummasi = item.amount * item.price;
-                jamiTaomlarSummasi += taomSummasi;
-                tbody.innerHTML += `<tr>
-                    <td>${item.name}</td>
-                    <td class="r">${item.amount}</td>
-                    <td class="r">${taomSummasi.toLocaleString()} so'm</td>
-                </tr>`;
-            });
+          data.items.forEach(item => {
+            let taomSummasi = item.amount * item.price;
+            jamiTaomlarSummasi += taomSummasi;
+            tbody.innerHTML += `<tr>
+              <td>${item.name}</td>
+              <td class="r">${item.amount}</td>
+              <td class="r">${taomSummasi.toLocaleString()} so'm</td>
+            </tr>`;
+          });
         } else {
-            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Hozircha faol buyurtma yo'q</td></tr>";
+          tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Hozircha faol buyurtma yo'q</td></tr>";
         }
 
         let xizmatHaqi = jamiTaomlarSummasi * 0.15;
         let yakuniySumma = jamiTaomlarSummasi + xizmatHaqi;
 
-        // Pastki hisob-kitob qismlarini yangilash
         document.getElementById('subtotal').innerText = jamiTaomlarSummasi.toLocaleString() + " so'm";
         document.getElementById('service-fee').innerText = xizmatHaqi.toLocaleString() + " so'm";
         document.getElementById('final-total').innerText = yakuniySumma.toLocaleString() + " so'm";
 
-    } catch (error) {
+      } catch (error) {
         console.error("Xatolik:", error);
         tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:red'>Hisobni olib bo'lmadi</td></tr>";
+      }
     }
-}
+
     window.onload = hisobniChiqarish;
-    async function callWaiter() {
-    const urlParams = new URLSearchParams(window.location.search);
-    let stolRaqami = urlParams.get('table') || "Noma'lum";
-
-    // Tugmani vaqtincha faolsizlantirish (ketma-ket bosilmasligi uchun)
-    const btn = document.querySelector('.btn-call');
-    if (btn) btn.disabled = true;
-
-    try {
-        // Firebase-ga ma'lumot yuborish
-        // DIQQAT: dbURL o'rniga o'zingizning Firebase havolangizni qo'ying
-        const response = await fetch("https://kamolon-led-monitor-default-rtdb.europe-west1.firebasedatabase.app/call.json", {
-            method: "PUT", // Ma'lumotni yangilash
-            body: JSON.stringify({
-                table: stolRaqami,
-                time: new Date().toLocaleTimeString()
-            })
-        });
-
-        if (response.ok) {
-            alert(stolRaqami + "-stol, ofitsiant chaqirildi!");
-        } else {
-            alert("Xatolik yuz berdi, qaytadan urinib ko'ring.");
-        }
-    } catch (error) {
-        console.error("Firebase xatosi:", error);
-        alert("Internet aloqasini tekshiring.");
-    } finally {
-        if (btn) btn.disabled = false;
-    }
-}
   </script>
 </body>
 </html>
-
-
-
